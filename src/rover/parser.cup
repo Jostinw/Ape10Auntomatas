@@ -1,0 +1,129 @@
+package rover;
+
+import java_cup.runtime.*;
+
+parser code {:
+    // Custom syntax error handling to report line and column of the illegal token
+    public void syntax_error(Symbol cur_token) {
+        String tokenName = "Desconocido";
+        if (cur_token.sym < sym.terminalNames.length) {
+            tokenName = sym.terminalNames[cur_token.sym];
+        }
+        String valueStr = (cur_token.value != null) ? cur_token.value.toString() : "";
+        String msg = "Error sintáctico: Token inesperado '" + tokenName + "'" + 
+                     (valueStr.isEmpty() ? "" : " (con valor: \"" + valueStr + "\")") +
+                     " en línea " + cur_token.left + ", columna " + cur_token.right;
+        throw new RuntimeException(msg);
+    }
+
+    public void unrecovered_syntax_error(Symbol cur_token) throws java.lang.Exception {
+        // Prevent default error recovery messages
+    }
+:};
+
+/* Terminals */
+terminal MOVE, FORWARD, BACKWARD, LEFT, RIGHT, TURN, TAKE, SAMPLE, FROM, SOIL, ROCK, METERS, DEGREES, PUNTO_COMA;
+terminal Integer NUMERO;
+
+/* Non-Terminals */
+non terminal Result Prog, ListaComandos, Comando, Movimiento, Giro, Recoleccion, Terreno, DirMov, DirGiro;
+
+/* Start symbol */
+start with Prog;
+
+Prog ::= ListaComandos:lc
+    {:
+        RESULT = new Result(lc.simulation, new Node("Prog", lc.node));
+    :}
+    ;
+
+ListaComandos ::= ListaComandos:lc Comando:c
+    {:
+        String sim = lc.simulation + "\n" + c.simulation;
+        RESULT = new Result(sim, new Node("ListaComandos", lc.node, c.node));
+    :}
+    | Comando:c
+    {:
+        RESULT = new Result(c.simulation, new Node("ListaComandos", c.node));
+    :}
+    ;
+
+Comando ::= Movimiento:m PUNTO_COMA
+    {:
+        RESULT = new Result(m.simulation, new Node("Comando", m.node, new Node(";")));
+    :}
+    | Giro:g PUNTO_COMA
+    {:
+        RESULT = new Result(g.simulation, new Node("Comando", g.node, new Node(";")));
+    :}
+    | Recoleccion:r PUNTO_COMA
+    {:
+        RESULT = new Result(r.simulation, new Node("Comando", r.node, new Node(";")));
+    :}
+    ;
+
+Movimiento ::= MOVE DirMov:d NUMERO:n METERS
+    {:
+        String sim = "[Simulación] Moviendo " + d.simulation + " " + n + " metros.";
+        Node node = new Node("Movimiento", 
+                            new Node("MOVE"), 
+                            d.node, 
+                            new Node(String.valueOf(n)), 
+                            new Node("METERS"));
+        RESULT = new Result(sim, node);
+    :}
+    ;
+
+Giro ::= TURN DirGiro:d NUMERO:n DEGREES
+    {:
+        String sim = "[Simulación] Girando a la " + d.simulation + " " + n + " grados.";
+        Node node = new Node("Giro", 
+                            new Node("TURN"), 
+                            d.node, 
+                            new Node(String.valueOf(n)), 
+                            new Node("DEGREES"));
+        RESULT = new Result(sim, node);
+    :}
+    ;
+
+Recoleccion ::= TAKE SAMPLE FROM Terreno:t
+    {:
+        String sim = "[Simulación] Recolectando muestra de " + t.simulation + ".";
+        Node node = new Node("Recoleccion", 
+                            new Node("TAKE"), 
+                            new Node("SAMPLE"), 
+                            new Node("FROM"), 
+                            t.node);
+        RESULT = new Result(sim, node);
+    :}
+    ;
+
+DirMov ::= FORWARD
+    {:
+        RESULT = new Result("ADELANTE", new Node("DirMov", new Node("FORWARD")));
+    :}
+    | BACKWARD
+    {:
+        RESULT = new Result("ATRÁS", new Node("DirMov", new Node("BACKWARD")));
+    :}
+    ;
+
+DirGiro ::= LEFT
+    {:
+        RESULT = new Result("IZQUIERDA", new Node("DirGiro", new Node("LEFT")));
+    :}
+    | RIGHT
+    {:
+        RESULT = new Result("DERECHA", new Node("DirGiro", new Node("RIGHT")));
+    :}
+    ;
+
+Terreno ::= SOIL
+    {:
+        RESULT = new Result("SUELO", new Node("Terreno", new Node("SOIL")));
+    :}
+    | ROCK
+    {:
+        RESULT = new Result("ROCA", new Node("Terreno", new Node("ROCK")));
+    :}
+    ;
