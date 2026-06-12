@@ -76,24 +76,76 @@
                     </button>
                 </div>
             </div>
+            <!-- Gramática Formal LALR(1) -->
+            <details class="bg-slate-900/40 border border-slate-800/80 rounded-xl overflow-hidden backdrop-blur-sm group shadow-lg">
+                <summary class="cursor-pointer p-4 font-bold text-sm text-slate-300 uppercase tracking-widest hover:bg-slate-800/50 transition-colors flex justify-between items-center select-none">
+                    <span class="flex items-center space-x-2">
+                        <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        <span>Ver Gramática Formal (Producciones CUP)</span>
+                    </span>
+                    <span class="text-slate-500 group-open:rotate-180 transition-transform">▼</span>
+                </summary>
+                <div class="p-5 border-t border-slate-800/50 bg-slate-950/80">
+                    <pre class="font-mono text-[13px] text-cyan-300 leading-relaxed overflow-x-auto whitespace-pre-wrap">
+<span class="text-pink-400">Prog</span>           ::= <span class="text-yellow-300">ListaComandos</span>
+<span class="text-pink-400">ListaComandos</span>  ::= <span class="text-yellow-300">ListaComandos</span> <span class="text-yellow-300">Comando</span> | <span class="text-yellow-300">Comando</span>
+<span class="text-pink-400">Comando</span>        ::= <span class="text-yellow-300">Movimiento</span> ';' | <span class="text-yellow-300">Giro</span> ';' | <span class="text-yellow-300">Recoleccion</span> ';'
+<span class="text-pink-400">Movimiento</span>     ::= <span class="text-emerald-400">MOVE</span> <span class="text-yellow-300">DirMov</span> <span class="text-blue-400">NUMERO</span> <span class="text-emerald-400">METERS</span>
+<span class="text-pink-400">Giro</span>           ::= <span class="text-emerald-400">TURN</span> <span class="text-yellow-300">DirGiro</span> <span class="text-blue-400">NUMERO</span> <span class="text-emerald-400">DEGREES</span>
+<span class="text-pink-400">Recoleccion</span>    ::= <span class="text-emerald-400">TAKE SAMPLE FROM</span> <span class="text-yellow-300">Terreno</span>
+<span class="text-pink-400">DirMov</span>         ::= <span class="text-emerald-400">FORWARD</span> | <span class="text-emerald-400">BACKWARD</span>
+<span class="text-pink-400">DirGiro</span>        ::= <span class="text-emerald-400">LEFT</span> | <span class="text-emerald-400">RIGHT</span>
+<span class="text-pink-400">Terreno</span>        ::= <span class="text-emerald-400">SOIL</span> | <span class="text-emerald-400">ROCK</span></pre>
+                </div>
+            </details>
 
             <!-- Panel de Control Principal -->
             <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-6 backdrop-blur-md shadow-2xl relative overflow-hidden">
                 <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 blur-2xl rounded-full"></div>
                 
-                <div class="flex justify-between items-center mb-3">
-                    <label for="input-commands" class="block text-sm font-bold text-slate-300 uppercase tracking-wider">
-                        Comandos de Transmisión
-                    </label>
-                    <span class="text-xs text-slate-500 font-mono">Cada instrucción debe terminar en punto y coma (;)</span>
-                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 flex flex-col">
+                        <div class="flex justify-between items-center mb-3">
+                            <label for="input-commands" class="block text-sm font-bold text-slate-300 uppercase tracking-wider">
+                                Comandos de Transmisión
+                            </label>
+                            <span class="text-xs text-slate-500 font-mono hidden sm:inline">Cada instrucción termina en (;)</span>
+                        </div>
 
-                <textarea id="input-commands" rows="5" 
-                    class="w-full bg-slate-950 border border-slate-800 rounded-lg p-4 font-mono text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 text-cyan-400"
-                    placeholder="Escriba los comandos aquí..."
-                >MOVE FORWARD 10 METERS;
+                        <textarea id="input-commands" rows="6" 
+                            class="w-full flex-1 bg-slate-950 border border-slate-800 rounded-lg p-4 font-mono text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 text-cyan-400"
+                            placeholder="Escriba los comandos aquí..."
+                        >MOVE FORWARD 10 METERS;
 TURN LEFT 90 DEGREES;
 TAKE SAMPLE FROM SOIL;</textarea>
+                    </div>
+
+                    <div class="lg:col-span-1 bg-slate-900/80 border border-slate-700/50 rounded-lg p-4 flex flex-col justify-center">
+                        <span class="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-3 border-b border-slate-700 pb-2">
+                            Diccionario de Comandos
+                        </span>
+                        <ul class="text-[11px] font-mono text-slate-400 space-y-3">
+                            <li>
+                                <span class="text-blue-400 font-bold block mb-0.5">▶ Movimiento:</span>
+                                <button onclick="injectCommand('MOVE FORWARD 10 METERS;')" class="w-full text-left bg-slate-950 hover:bg-blue-900/30 p-1.5 rounded transition-colors border border-transparent hover:border-blue-800/50 active:scale-[0.98] text-slate-300">
+                                    MOVE (FORWARD | BACKWARD) [número] METERS;
+                                </button>
+                            </li>
+                            <li>
+                                <span class="text-cyan-400 font-bold block mb-0.5">▶ Rotación:</span>
+                                <button onclick="injectCommand('TURN LEFT 90 DEGREES;')" class="w-full text-left bg-slate-950 hover:bg-cyan-900/30 p-1.5 rounded transition-colors border border-transparent hover:border-cyan-800/50 active:scale-[0.98] text-slate-300">
+                                    TURN (LEFT | RIGHT) [número] DEGREES;
+                                </button>
+                            </li>
+                            <li>
+                                <span class="text-emerald-400 font-bold block mb-0.5">▶ Recolección:</span>
+                                <button onclick="injectCommand('TAKE SAMPLE FROM ROCK;')" class="w-full text-left bg-slate-950 hover:bg-emerald-900/30 p-1.5 rounded transition-colors border border-transparent hover:border-emerald-800/50 active:scale-[0.98] text-slate-300">
+                                    TAKE SAMPLE FROM (SOIL | ROCK);
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
 
                 <div class="mt-4 flex justify-between items-center">
                     <div id="status-badge" class="text-xs font-mono py-1 px-3 rounded bg-slate-800 text-slate-400 flex items-center space-x-2">
@@ -101,14 +153,20 @@ TAKE SAMPLE FROM SOIL;</textarea>
                         <span id="status-text">Listo para recibir comandos</span>
                     </div>
 
-                    <button id="btn-analyze" onclick="analyzeCommands()"
-                        class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-2.5 px-6 rounded-lg shadow-lg hover:shadow-blue-500/20 active:scale-95 transition-all duration-200 flex items-center space-x-2"
-                    >
-                        <span>Analizar Comandos</span>
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-                        </svg>
-                    </button>
+                    <div class="flex space-x-3">
+                        <button id="btn-clear" onclick="clearAll()"
+                            class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 px-6 rounded-lg transition-all duration-200">
+                            Limpiar
+                        </button>
+                        <button id="btn-analyze" onclick="analyzeCommands()"
+                            class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-2.5 px-6 rounded-lg shadow-lg hover:shadow-blue-500/20 active:scale-95 transition-all duration-200 flex items-center space-x-2"
+                        >
+                            <span>Analizar Comandos</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -133,13 +191,18 @@ TAKE SAMPLE FROM SOIL;</textarea>
                 </div>
 
                 <!-- Columna Derecha: Árbol de Derivación Sintáctica Gráfico -->
-                <div class="bg-slate-900/40 border border-slate-800 rounded-xl overflow-hidden shadow-2xl flex flex-col h-[450px]">
+                <div id="ast-wrapper" class="bg-slate-900/40 border border-slate-800 rounded-xl overflow-hidden shadow-2xl flex flex-col h-[450px] transition-all duration-300">
                     <!-- Cabecera de Árbol con botón de Recentrado -->
                     <div class="bg-slate-900 px-4 py-2 border-b border-slate-800 flex items-center justify-between">
                         <span class="text-xs text-slate-400 font-mono">AST (Árbol de Derivación Sintáctica)</span>
-                        <button onclick="recenterTree()" class="text-[10px] bg-slate-950 hover:bg-slate-800 text-slate-300 font-bold px-2.5 py-1 rounded transition duration-200 border border-slate-800">
-                            Recentrar Vista
-                        </button>
+                        <div class="flex space-x-2">
+                            <button onclick="recenterTree()" class="text-[10px] bg-slate-950 hover:bg-slate-800 text-slate-300 font-bold px-2.5 py-1 rounded transition duration-200 border border-slate-800">
+                                Recentrar Vista
+                            </button>
+                            <button id="btn-fullscreen" onclick="toggleFullscreenTree()" class="text-[10px] bg-blue-900/50 hover:bg-blue-800/80 text-blue-300 font-bold px-2.5 py-1 rounded transition duration-200 border border-blue-800/50 shadow-lg">
+                                Ver Árbol Completo
+                            </button>
+                        </div>
                     </div>
                     <!-- Contenedor del Gráfico con vis-network -->
                     <div id="tree-network-container" class="flex-1 bg-[#060912] relative">
@@ -160,6 +223,37 @@ TAKE SAMPLE FROM SOIL;</textarea>
     <script>
         let networkInstance = null;
         let nodeIdCounter = 0;
+        let typingTimeout = null;
+
+        // Función para limpiar todo
+        function clearAll() {
+            document.getElementById("input-commands").value = "";
+            document.getElementById("simulation-output").innerHTML = "[INFO] Consola de telemetría lista para nuevas transmisiones.";
+            const treeContainer = document.getElementById("tree-network-container");
+            treeContainer.innerHTML = `<div class="text-slate-500 text-sm italic font-mono p-6 text-center absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full">El árbol gráfico se dibujará aquí tras analizar con éxito.</div>`;
+            if (networkInstance !== null) {
+                networkInstance.destroy();
+                networkInstance = null;
+            }
+            updateStatus('default', 'Listo para recibir comandos');
+            clearTimeout(typingTimeout);
+        }
+
+        // Efecto máquina de escribir
+        function typewriterEffect(element, text, speed) {
+            clearTimeout(typingTimeout);
+            let i = 0;
+            const baseHTML = element.innerHTML;
+            function type() {
+                if (i < text.length) {
+                    element.innerHTML = baseHTML + text.substring(0, i + 1).replace(/\n/g, '<br>');
+                    i++;
+                    element.scrollTop = element.scrollHeight;
+                    typingTimeout = setTimeout(type, speed);
+                }
+            }
+            type();
+        }
 
         // Función para inyectar comandos rápidos
         function injectCommand(cmd) {
@@ -197,6 +291,7 @@ TAKE SAMPLE FROM SOIL;</textarea>
 
             // Cambiar estado a analizando
             updateStatus('analyzing', 'Analizando cadena...');
+            clearTimeout(typingTimeout);
             simConsole.innerHTML = `[INFO] Enviando telemetría al analizador léxico y sintáctico...`;
             treeContainer.innerHTML = `<div class="text-slate-500 text-sm italic font-mono p-6 text-center absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">Generando gráfico jerárquico del árbol sintáctico...</div>`;
 
@@ -217,8 +312,9 @@ TAKE SAMPLE FROM SOIL;</textarea>
 
                 if (data.status === 'success') {
                     updateStatus('success', 'Análisis completado');
-                    // Mostrar resultados en consola
-                    simConsole.innerHTML = `<span class="text-green-500">¡TRANSMISIÓN CORRECTA! Analizador completado con éxito.</span>\n\n${data.simulacion}`;
+                    // Mostrar resultados en consola con efecto typewrtier
+                    simConsole.innerHTML = `<span class="text-green-500">¡TRANSMISIÓN CORRECTA! Analizador completado con éxito.</span><br><br>`;
+                    typewriterEffect(simConsole, data.simulacion, 20);
                     
                     // Renderizar el árbol de derivación de forma gráfica
                     if (data.arbol) {
@@ -228,13 +324,15 @@ TAKE SAMPLE FROM SOIL;</textarea>
                     }
                 } else {
                     updateStatus('error', 'Error en la entrada');
-                    simConsole.innerHTML = `<span class="text-red-500">¡ERROR DETECTADO EN LA TRANSMISIÓN!</span>\n\n${data.error}`;
+                    simConsole.innerHTML = `<span class="text-red-500">¡ERROR DETECTADO EN LA TRANSMISIÓN!</span><br><br>`;
+                    typewriterEffect(simConsole, data.error, 20);
                     treeContainer.innerHTML = `<div class="text-red-400 font-mono text-sm p-6 text-center absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">[ERROR] No se pudo derivar debido a un fallo léxico o sintáctico.</div>`;
                 }
 
             } catch (err) {
                 updateStatus('error', 'Fallo de conexión');
-                simConsole.innerHTML = `<span class="text-red-500">¡ERROR DE CONEXIÓN CON EL SERVIDOR!</span>\n\nDetalle: ${err.message}`;
+                simConsole.innerHTML = `<span class="text-red-500">¡ERROR DE CONEXIÓN CON EL SERVIDOR!</span><br><br>`;
+                typewriterEffect(simConsole, "Detalle: " + err.message, 20);
                 treeContainer.innerHTML = `<div class="text-red-500 font-mono text-sm p-6 text-center absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">[EXCEPCIÓN] Servidor no responde en http://localhost:8080.</div>`;
             }
         }
@@ -317,6 +415,10 @@ TAKE SAMPLE FROM SOIL;</textarea>
 
         // Renderiza el árbol completo mediante la librería vis-network
         function renderTreeGraph(treeData) {
+            if (networkInstance !== null) {
+                networkInstance.destroy();
+                networkInstance = null;
+            }
             nodeIdCounter = 0;
             const nodes = [];
             const edges = [];
@@ -379,6 +481,37 @@ TAKE SAMPLE FROM SOIL;</textarea>
                     }
                 });
             }
+        }
+
+        // Alternar pantalla completa del árbol
+        let isFullscreen = false;
+        function toggleFullscreenTree() {
+            const wrapper = document.getElementById('ast-wrapper');
+            const btn = document.getElementById('btn-fullscreen');
+            
+            isFullscreen = !isFullscreen;
+            if (isFullscreen) {
+                wrapper.classList.remove('h-[450px]', 'rounded-xl', 'relative');
+                wrapper.classList.add('fixed', 'inset-0', 'z-50', 'h-screen', 'w-screen', 'rounded-none', 'bg-slate-900/95', 'backdrop-blur-xl');
+                btn.innerText = 'Cerrar Vista Ampliada';
+                btn.classList.replace('bg-blue-900/50', 'bg-red-900/50');
+                btn.classList.replace('hover:bg-blue-800/80', 'hover:bg-red-800/80');
+                btn.classList.replace('text-blue-300', 'text-red-300');
+                btn.classList.replace('border-blue-800/50', 'border-red-800/50');
+            } else {
+                wrapper.classList.add('h-[450px]', 'rounded-xl', 'relative');
+                wrapper.classList.remove('fixed', 'inset-0', 'z-50', 'h-screen', 'w-screen', 'rounded-none', 'bg-slate-900/95', 'backdrop-blur-xl');
+                btn.innerText = 'Ver Árbol Completo';
+                btn.classList.replace('bg-red-900/50', 'bg-blue-900/50');
+                btn.classList.replace('hover:bg-red-800/80', 'hover:bg-blue-800/80');
+                btn.classList.replace('text-red-300', 'text-blue-300');
+                btn.classList.replace('border-red-800/50', 'border-blue-800/50');
+            }
+            
+            // Forzar a vis-network a reajustar su tamaño
+            setTimeout(() => {
+                if (networkInstance) networkInstance.fit();
+            }, 50);
         }
 
         // Helper para cambiar badge de estado
