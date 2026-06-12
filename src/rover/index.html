@@ -34,7 +34,7 @@
     </style>
 </head>
 <body class="bg-[#0b0f19] text-slate-100 min-h-screen font-sans">
-    <div class="container mx-auto px-4 py-8 max-w-6xl">
+    <div class="container mx-auto px-4 py-8 max-w-7xl">
         <!-- Header con efecto de brillo espacial -->
         <header class="text-center mb-8 relative">
             <div class="absolute inset-0 bg-blue-500/10 blur-3xl rounded-full w-80 h-32 mx-auto"></div>
@@ -171,7 +171,7 @@ TAKE SAMPLE FROM SOIL;</textarea>
             </div>
 
             <!-- Contenedor inferior dividido -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <!-- Columna Izquierda: Consola de Simulación -->
                 <div class="bg-black/90 border border-slate-800 rounded-xl overflow-hidden shadow-2xl flex flex-col h-[450px]">
                     <!-- Cabecera de Terminal -->
@@ -187,6 +187,33 @@ TAKE SAMPLE FROM SOIL;</textarea>
                     <div id="simulation-output" class="p-6 font-mono text-emerald-400 text-sm overflow-y-auto flex-1 leading-relaxed whitespace-pre-wrap">
 [INFO] Iniciando telemetría del Rover...
 [INFO] Esperando transmisión de instrucciones válidas.
+                    </div>
+                </div>
+
+                <!-- Columna Central: Tabla de Tokens Analizados -->
+                <div class="bg-slate-900/40 border border-slate-800 rounded-xl overflow-hidden shadow-2xl flex flex-col h-[450px]">
+                    <!-- Cabecera de Tabla -->
+                    <div class="bg-slate-900 px-4 py-2.5 border-b border-slate-800 flex items-center justify-between">
+                        <span class="text-xs text-slate-400 font-mono">Tabla de Tokens Analizados</span>
+                        <span id="token-count-badge" class="text-[10px] bg-blue-950/60 text-blue-400 font-semibold px-2 py-0.5 rounded border border-blue-800/30">0 tokens</span>
+                    </div>
+                    <!-- Contenido Tabla -->
+                    <div class="flex-1 overflow-y-auto p-4">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-slate-800 text-slate-400 text-[10px] uppercase font-bold tracking-wider">
+                                    <th class="py-2.5 px-3">Token</th>
+                                    <th class="py-2.5 px-3">Lexema</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tokens-table-body" class="text-xs font-mono">
+                                <tr>
+                                    <td colspan="2" class="text-slate-500 text-center py-8 italic font-sans">
+                                        Los tokens analizados se mostrarán aquí.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -322,11 +349,23 @@ TAKE SAMPLE FROM SOIL;</textarea>
                     } else {
                         treeContainer.innerHTML = `<div class="text-slate-500 text-sm italic font-mono p-6 text-center absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">Árbol vacío</div>`;
                     }
+
+                    // Renderizar la tabla de tokens
+                    if (data.tokens) {
+                        renderTokensTable(data.tokens);
+                    }
                 } else {
                     updateStatus('error', 'Error en la entrada');
                     simConsole.innerHTML = `<span class="text-red-500">¡ERROR DETECTADO EN LA TRANSMISIÓN!</span><br><br>`;
                     typewriterEffect(simConsole, data.error, 20);
                     treeContainer.innerHTML = `<div class="text-red-400 font-mono text-sm p-6 text-center absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">[ERROR] No se pudo derivar debido a un fallo léxico o sintáctico.</div>`;
+                    
+                    // Renderizar tokens parciales si están disponibles en la respuesta de error
+                    if (data.tokens) {
+                        renderTokensTable(data.tokens);
+                    } else {
+                        clearTokensTable();
+                    }
                 }
 
             } catch (err) {
@@ -540,6 +579,80 @@ TAKE SAMPLE FROM SOIL;</textarea>
                 badge.classList.add("bg-slate-800", "text-slate-400");
                 indicator.classList.add("bg-slate-400");
             }
+        }
+
+        // Renderiza la tabla de tokens
+        function renderTokensTable(tokens) {
+            const tableBody = document.getElementById("tokens-table-body");
+            const badgeCount = document.getElementById("token-count-badge");
+            
+            badgeCount.innerText = `${tokens.length} token${tokens.length === 1 ? '' : 's'}`;
+            
+            if (tokens.length === 0) {
+                clearTokensTable();
+                return;
+            }
+            
+            let html = "";
+            tokens.forEach((t) => {
+                const badgeHtml = `<span class="${getTokenBadgeClass(t.token)}">${t.token}</span>`;
+                html += `
+                    <tr class="hover:bg-slate-800/20 transition-colors border-b border-slate-800/40">
+                        <td class="py-2 px-3 align-middle">${badgeHtml}</td>
+                        <td class="py-2 px-3 text-slate-300 font-semibold align-middle">${escapeHtml(t.lexema)}</td>
+                    </tr>
+                `;
+            });
+            tableBody.innerHTML = html;
+        }
+
+        // Limpia la tabla de tokens
+        function clearTokensTable() {
+            const tableBody = document.getElementById("tokens-table-body");
+            const badgeCount = document.getElementById("token-count-badge");
+            badgeCount.innerText = "0 tokens";
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="2" class="text-slate-500 text-center py-8 italic font-sans">
+                        Los tokens analizados se mostrarán aquí.
+                    </td>
+                </tr>
+            `;
+        }
+
+        // Retorna la clase de estilos CSS de Tailwind para cada token
+        function getTokenBadgeClass(tokenName) {
+            const baseClass = "px-2 py-0.5 rounded text-[10px] font-bold border inline-block ";
+            if (['MOVE', 'TURN', 'TAKE'].includes(tokenName)) {
+                return baseClass + "bg-blue-950/60 text-blue-400 border-blue-800/30";
+            }
+            if (['FORWARD', 'BACKWARD', 'LEFT', 'RIGHT'].includes(tokenName)) {
+                return baseClass + "bg-cyan-950/60 text-cyan-400 border-cyan-800/30";
+            }
+            if (['METERS', 'DEGREES'].includes(tokenName)) {
+                return baseClass + "bg-indigo-950/60 text-indigo-400 border-indigo-800/30";
+            }
+            if (['SAMPLE', 'FROM', 'SOIL', 'ROCK'].includes(tokenName)) {
+                return baseClass + "bg-emerald-950/60 text-emerald-400 border-emerald-800/30";
+            }
+            if (tokenName === 'PUNTO_COMA') {
+                return baseClass + "bg-slate-800 text-slate-400 border-slate-700/50";
+            }
+            if (tokenName === 'NUMERO') {
+                return baseClass + "bg-amber-950/60 text-amber-400 border-amber-800/30";
+            }
+            return baseClass + "bg-purple-950/60 text-purple-400 border-purple-800/30";
+        }
+
+        // Utilidad para escapar HTML y prevenir XSS
+        function escapeHtml(text) {
+            if (!text) return "";
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
         }
     </script>
 </body>

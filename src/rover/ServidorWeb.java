@@ -13,6 +13,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.charset.StandardCharsets;
 import java_cup.runtime.Symbol;
+import java.util.List;
+import java.util.ArrayList;
 
 public class ServidorWeb {
     public static void main(String[] args) throws IOException {
@@ -73,7 +75,32 @@ public class ServidorWeb {
                     }
 
                     String jsonResponse;
+                    List<String> tokenJsonList = new ArrayList<>();
+                    String tokensJson = "[]";
                     try {
+                        // Paso 1: Analizar léxicamente para extraer todos los tokens
+                        try {
+                            StringReader tokenReader = new StringReader(commands);
+                            Lexer tokenLexer = new Lexer(tokenReader);
+                            Symbol s;
+                            while ((s = tokenLexer.next_token()).sym != sym.EOF) {
+                                String tokenName = (s.sym < sym.terminalNames.length) ? sym.terminalNames[s.sym] : "Desconocido";
+                                String lexeme = tokenLexer.yytext();
+                                int line = s.left;
+                                int col = s.right;
+                                tokenJsonList.add("{"
+                                        + "\"token\":\"" + escapeJson(tokenName) + "\","
+                                        + "\"lexema\":\"" + escapeJson(lexeme) + "\","
+                                        + "\"linea\":" + line + ","
+                                        + "\"columna\":" + col
+                                        + "}");
+                            }
+                        } catch (Exception lexEx) {
+                            // Ignorar errores léxicos aquí, ya que el parser o el lexer principal los reportarán
+                        }
+                        tokensJson = "[" + String.join(",", tokenJsonList) + "]";
+
+                        // Paso 2: Análisis sintáctico
                         StringReader reader = new StringReader(commands);
                         Lexer lexer = new Lexer(reader);
                         parser p = new parser(lexer);
@@ -87,25 +114,29 @@ public class ServidorWeb {
                             jsonResponse = "{"
                                     + "\"status\":\"success\","
                                     + "\"simulacion\":\"" + simEscaped + "\","
-                                    + "\"arbol\":" + treeJson
+                                    + "\"arbol\":" + treeJson + ","
+                                    + "\"tokens\":" + tokensJson
                                     + "}";
                         } else {
                             jsonResponse = "{"
                                     + "\"status\":\"error\","
-                                    + "\"error\":\"Error al procesar la derivación sintáctica.\""
+                                    + "\"error\":\"Error al procesar la derivación sintáctica.\","
+                                    + "\"tokens\":" + tokensJson
                                     + "}";
                         }
                     } catch (RuntimeException ex) {
                         String errorMsg = escapeJson(ex.getMessage());
                         jsonResponse = "{"
                                 + "\"status\":\"error\","
-                                + "\"error\":\"" + errorMsg + "\""
+                                + "\"error\":\"" + errorMsg + "\","
+                                + "\"tokens\":" + tokensJson
                                 + "}";
                     } catch (Exception ex) {
                         String errorMsg = escapeJson(ex.toString());
                         jsonResponse = "{"
                                 + "\"status\":\"error\","
-                                + "\"error\":\"" + errorMsg + "\""
+                                + "\"error\":\"" + errorMsg + "\","
+                                + "\"tokens\":" + tokensJson
                                 + "}";
                     }
 
